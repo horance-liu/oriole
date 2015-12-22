@@ -1,9 +1,9 @@
 #浅谈C++物理设计
 
-**刘光聪**，程序员，敏捷教练，开源软件爱好者，目前供职于中兴通讯无线研究院，具有多年大型遗留系统的重构经验，对面向对象，函数式，大数据等领域具有浓厚的兴趣。
+**刘光聪**，程序员，敏捷教练，开源软件爱好者，具有多年大型遗留系统的重构经验，对`OO`，`FP`，`DSL`等领域具有浓厚的兴趣。
 
-- github: https://github.com/horance-liu
-- email: horance@outlook.com
+- GitHub: [https://github.com/horance-liu](https://github.com/horance-liu)
+- Email: [horance@outlook.com](horance@outlook.com)
 
 ## 代码规范
 
