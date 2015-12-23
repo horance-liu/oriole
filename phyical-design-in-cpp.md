@@ -1,10 +1,5 @@
 #浅谈C++物理设计
 
-**刘光聪**，程序员，敏捷教练，开源软件爱好者，具有多年大型遗留系统的重构经验，对`OO`，`FP`，`DSL`等领域具有浓厚的兴趣。
-
-- GitHub: [https://github.com/horance-liu](https://github.com/horance-liu)
-- Email: [horance@outlook.com](horance@outlook.com)
-
 ## 代码规范
 
 ### 头文件保护宏
@@ -1350,4 +1345,10 @@ namespace details
 
 通过`DEFINE_ROLE`的宏定义来实现对接口的定义，从而可以消除子类对虚拟析构函数的重复实现。
 
+## About Me
+
+**刘光聪**，程序员，敏捷教练，开源软件爱好者，具有多年大型遗留系统的重构经验，对`OO`，`FP`，`DSL`等领域具有浓厚的兴趣。
+
+- GitHub: [https://github.com/horance-liu](https://github.com/horance-liu)
+- Email: [horance@outlook.com](emailto: horance@outlook.com)
 

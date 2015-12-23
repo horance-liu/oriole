@@ -1,10 +1,5 @@
 # Magellan: A Simple xUnit Test Framework in Modern C++11
 
-**刘光聪**，程序员，敏捷教练，开源软件爱好者，具有多年大型遗留系统的重构经验，对`OO`，`FP`，`DSL`等领域具有浓厚的兴趣。
-
-- GitHub: [https://github.com/horance-liu](https://github.com/horance-liu)
-- Email: [horance@outlook.com](horance@outlook.com)
-
 ## 你无法忍受Google Test的9个特性
 
 ### 用例描述必须遵循严格的标识符规则
@@ -1112,5 +1107,12 @@ private:
 #### 监听状态
 
 `Magellan`通过`TestListener`对运行时的状态变化进行监控，从而实现了`Magellan`不同格式报表打印的变化。
+
+## About Me
+
+**刘光聪**，程序员，敏捷教练，开源软件爱好者，具有多年大型遗留系统的重构经验，对`OO`，`FP`，`DSL`等领域具有浓厚的兴趣。
+
+- GitHub: [https://github.com/horance-liu](https://github.com/horance-liu)
+- Email: [horance@outlook.com](emailto: horance@outlook.com)
 
 

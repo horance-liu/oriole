@@ -1,10 +1,5 @@
 # Jumping with Option
 
-**刘光聪**，程序员，敏捷教练，开源软件爱好者，具有多年大型遗留系统的重构经验，对`OO`，`FP`，`DSL`等领域具有浓厚的兴趣。
-
-- GitHub: [https://github.com/horance-liu](https://github.com/horance-liu)
-- Email: [horance@outlook.com](horance@outlook.com)
-
 ## Billion-Dollar Mistake
 
 **Tony Hoare**, `null`的发明者在`2009`年公开道歉，并将此错误称为`Billion-Dollar Mistake`。
@@ -403,6 +398,13 @@ pat1 <- expr1.withFilter((arg1, arg2, ...) => guard)
 - Transaction
 
 后需文章将逐一解开它们的面纱，敬请期待！
+
+## About Me
+
+**刘光聪**，程序员，敏捷教练，开源软件爱好者，具有多年大型遗留系统的重构经验，对`OO`，`FP`，`DSL`等领域具有浓厚的兴趣。
+
+- GitHub: [https://github.com/horance-liu](https://github.com/horance-liu)
+- Email: [horance@outlook.com](emailto: horance@outlook.com)
 
 
 
