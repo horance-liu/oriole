@@ -335,22 +335,22 @@ public final class StudentPredicates {
 从需求看，比较准则增加了众多的语义，再次运用分离关注点的原则，可发现存在两类运算的规则:
 
 - 比较运算：`==, !=`
-- 逻辑运算：`&&，||`
+- 逻辑运算：`&&, ||`
 
 ##### 比较语义
 
-先处理比较运算的关注点，为此建立一个`Equal`的抽象：
+先处理比较运算的关注点，为此建立一个`Matcher`的抽象：
 
 ```java
-public interface Equal<E> {
-  boolean test(E e1, E e2);
+public interface Matcher<T> {
+  boolean matches(T actual);
     
-  static <E> Equal<E> eq() {
-    return (e1, e2) -> e1.equals(e2);
+  static <T> Matcher<T> eq(T expected) {
+    return actual -> expected.equals(actual);
   }
   
-  static <E> Equal<E> ne() {
-    return (e1, e2) -> !e1.equals(e2);
+  static <T> Matcher<T> ne(T expected) {
+    return actual -> !expected.equals(actual);
   }
 }
 ```
@@ -361,8 +361,8 @@ public interface Equal<E> {
 public final class StudentPredicates {
   ......
 
-  public static Predicate<Student> age(Equal<Integer> e, int age) {
-    return s -> e.test(s.getAge(), age);
+  public static Predicate<Student> age(Matcher<Integer> m) {
+    return s -> m.matches(s.getAge());
   }
 }
 ```
@@ -370,7 +370,7 @@ public final class StudentPredicates {
 *查找年龄不等于18岁的学生*，可以如此描述。
 
 ```java
-assertThat(find(students, age(ne(), 18)), notNullValue());
+assertThat(find(students, age(ne(18))), notNullValue());
 ```
 
 ##### 逻辑语义
@@ -390,7 +390,7 @@ public interface Predicate<E> {
 *查找年龄不等于18岁的女生*，可以表述为：
 
 ```java
-assertThat(find(students, age(ne(), 18).and(Student::female)), notNullValue());
+assertThat(find(students, age(ne(18)).and(Student::female)), notNullValue());
 ```
 
 #### 重复再现
@@ -435,9 +435,9 @@ public class Teacher {
 public final class StudentPredicates {
   ......
 
-  public static Predicate<Student> age(Equals<Integer> e, int age) {
-    return s -> e.test(s.getAge(), age);
-  } 
+  public static Predicate<Student> age(Matcher<Integer> m) {
+    return s -> m.matches(s.getAge());
+  }
 }
 ```
 
@@ -445,9 +445,9 @@ public final class StudentPredicates {
 public final class TeacherPredicates {
   ......
 
-  public static Predicate<Teacher> age(Equals<Integer> e, int age) {
-    return t -> e.test(t.getAge(), age);
-  } 
+  public static Predicate<Teacher> age(Matcher<Integer> m) {
+    return t -> m.matches(t.getAge());
+  }
 }
 ```
 
@@ -494,8 +494,8 @@ public final class HumanPredicates {
   ......
   
   public static <E extends Human> 
-    Predicate<E> age(Equals<Integer> e, int age) {
-    return s -> e.test(s.getAge(), age);
+    Predicate<E> age(Matcher<Integer> m) {
+    return s -> m.matches(s.getAge());
   } 
 }
 ```
@@ -532,8 +532,8 @@ public class Human {
 public final class HumanPredicates {
   ......
   
-  public static Predicate<Human> age(Equals<Integer> e, int age) {
-    return s -> e.test(s.getAge(), age);
+  public static Predicate<Human> age(Matcher<Integer> m) {
+    return s -> m.matches(s.getAge());
   } 
 }
 ```
@@ -553,7 +553,7 @@ import java.util.Optional;
 public <E> Optional<E> find(Iterable<? extends E> c, Predicate<? super E> p) {
   for (E e : c) {
     if (p.test(e)) {
-        return Optional.of(e);
+      return Optional.of(e);
     }
   }
   return Optional.empty();
