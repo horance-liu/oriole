@@ -502,6 +502,6 @@ public class JSpecs {{
 
 ## GitHub
 
-`JSpec`已上传至`GitHub：[https://github.com/horance-liu/jspec](https://github.com/horance-liu/jspec)`，代码细节请参考源代码。
+`JSpec`已上传至`GitHub：`[https://github.com/horance-liu/jspec](https://github.com/horance-liu/jspec)，代码细节请参考源代码。
 
 
