@@ -58,65 +58,59 @@
 - 缩小依赖范围
 - 向稳定的方向依赖
 
-### 实战
+## 实战
 
 > **需求1：** 存在一个学生的列表，查找一个年龄等于`18`岁的学生
 
-#### 快速实现
+### 快速实现
 
 ```java
 public static Student findByAge(Student[] students) {
-  for (int i=0; i<students.length; i++) {
-    if (students[i].getAge() == 18) {
-        return students[i];
-    }
-  }
+  for (int i=0; i<students.length; i++)
+    if (students[i].getAge() == 18)
+      return students[i];
   return null;
 }
 ```
 
-为了阐述设计的整个思考，及其重构的过程，揭示软件设计过程的真实样貌，很多设计是故意地引入坏味道。例如，上述实现存在很多代码的坏味道：
+上述实现存在很多设计的「坏味道」：
 
 - 缺乏弹性参数类型：只支持数组类型，`List, Set`都被拒之门外；
 - 容易出错：操作数组下标，往往引入不经意的错误；
 - 幻数：硬编码，将算法与配置高度耦合；
 - 返回`null`：再次给用户打开了犯错的大门；
 
-#### 使用`for-each`
+### 使用`for-each`
 
-按照最小依赖的原则，现屏蔽掉数组下标的细节，使用`for-each`降低错误发生的可能性。
+按照「最小依赖原则」，先隐藏数组下标的实现细节，使用`for-each`降低错误发生的可能性。
 
 ```java
 public static Student findByAge(Student[] students) {
-  for (Student s : students) {
-    if (s.getAge() == 18) {
-        return s;
-    }
-  }
+  for (Student s : students)
+    if (s.getAge() == 18)
+      return s;
   return null;
 }
 ```
 
 > **需求2：** 查找一个名字为`horance`的学生
 
-#### 重复设计
+### 重复设计
 
-`Copy-Paste`是最快的实现方法，但会产生重复的设计。
+`Copy-Paste`是最快的实现方法，但会产生「重复设计」。
 
 ```java
 public static Student findByName(Student[] students) {
-  for (Student s : students) {
-    if (s.getName().equals("horance")) {
-        return s;
-    }
-  }
+  for (Student s : students)
+    if (s.getName().equals("horance"))
+      return s;
   return null;
 }
 ```
 
-为了消除重复，可以将查找的算法与比较的准则这两个关注点进行分离。
+为了消除重复，可以将「查找算法」与「比较准则」这两个「变化方向」进行分离。
 
-#### 抽象准则
+### 抽象准则
 
 首先将比较的准则进行抽象化，让其独立变化。
 
@@ -126,7 +120,7 @@ public interface StudentPredicate {
 }
 ```
 
-将各个「变化的原因」对象化，为此建立了两个简单的算子。
+将各个「变化原因」对象化，为此建立了两个简单的算子。
 
 ```java
 public class AgePredicate implements StudentPredicate {
@@ -158,15 +152,13 @@ public class NamePredicate implements StudentPredicate {
 }
 ```
 
-此刻，查找算法的方法名也应该被重命名，使其保持一致的「抽象层次」。
+此刻，查找算法的方法名也应该被「重命名」，使其保持在同一个「抽象层次」上。
 
 ```java
 public static Student find(Student[] students, StudentPredicate p) {
-  for (Student s : students) {
-    if (p.test(s)) {
-        return s;
-    }
-  }
+  for (Student s : students)
+    if (p.test(s))
+      return s;
   return null;
 }
 ```
@@ -178,33 +170,31 @@ assertThat(find(students, new AgePredicate(18)), notNullValue());
 assertThat(find(students, new NamePredicate("horance")), notNullValue());
 ```
 
-#### 结构性重复
+### 结构性重复
 
-`AgPredicate`和`NamePredicate`存在「结构型重复」，为此需要进一步消除重复。经分析两个类的存在无非是为了实现「闭包」的能力，可以使用`lambda`表达式，「`Code As Data`」，简明扼要。
+`AgePredicate`和`NamePredicate`存在「结构型重复」，需要进一步消除重复。经分析两个类的存在无非是为了实现「闭包」的能力，可以使用`lambda`表达式，「`Code As Data`」，简明扼要。
 
 ```java
 assertThat(find(students, s -> s.getAge() == 18), notNullValue());
 assertThat(find(students, s -> s.getName().equals("horance")), notNullValue());
 ```
 
-#### 引入`Iterable`
+### 引入`Iterable`
 
-按照向稳定的方向依赖的原则，为了适应诸如`List, Set`等多种数据结构，甚至包括原生的数组类型，可以将入参重构为重构为更加抽象的`Iterable`类型。
+按照「向稳定的方向依赖」的原则，为了适应诸如`List, Set`等多种数据结构，甚至包括原生的数组类型，可以将入参重构为重构为更加抽象的`Iterable`类型。
 
 ```java
 public static Student find(Iterable<Student> students, StudentPredicate p) {
-  for (Student s : students) {
-    if (p.test(s)) {
-        return s;
-    }
-  }
+  for (Student s : students)
+    if (p.test(s))
+      return s;
   return null;
 }
 ```
 
 > **需求3：** 存在一个老师列表，查找第一个女老师
 
-#### 类型重复
+### 类型重复
 
 按照既有的代码结构，可以通过`Copy Paste`快速地实现这个功能。
 
@@ -216,11 +206,9 @@ public interface TeacherPredicate {
 
 ```java
 public static Teacher find(Iterable<Teacher> teachers, TeacherPredicate p) {
-  for (Teacher t : teachers) {
-    if (p.test(t)) {
-        return t;
-    }
-  }
+  for (Teacher t : teachers)
+    if (p.test(t))
+      return t;
   return null;
 }
 ```
@@ -237,11 +225,11 @@ assertThat(find(teachers, t -> t.female()), notNullValue());
 assertThat(find(teachers, Teacher::female), notNullValue());
 ```
 
-#### 类型参数化
+### 类型参数化
 
-分析`StudentMacher/TeacherPredicate`, `find(Iterable<Student>)/find(Iterable<Teacher>)`的重复，其变化的关注点很明显：*参数类型*。
+分析`StudentMacher/TeacherPredicate`, `find(Iterable<Student>)/find(Iterable<Teacher>)`的重复，为此引入「类型参数化」的设计。
 
-为此，引入「类型参数化」设计消除重复。首先消除`StudentPredicate`和`TeacherPredicate`的重复设计，
+首先消除`StudentPredicate`和`TeacherPredicate`的重复设计。
 
 ```java
 public interface Predicate<E> {
@@ -253,40 +241,38 @@ public interface Predicate<E> {
 
 ```java
 public static <E> E find(Iterable<E> c, Predicate<E> p) {
-  for (E e : c) {
-    if (p.test(e)) {
-        return e;
-    }
-  }
+  for (E e : c)
+    if (p.test(e))
+      return e;
   return null;
 }
 ```
 
-#### 型变
+### 型变
 
 但`find`的类型参数缺乏「型变」的能力，为此引入「型变」能力的支持，接口更加具有可复用性。
 
 ```java
 public static <E> E find(Iterable<? extends E> c, Predicate<? super E> p) {
-  for (E e : c) {
-    if (p.test(e)) {
-        return e;
-    }
-  }
+  for (E e : c)
+    if (p.test(e))
+      return e;
   return null;
 }
 ```
 
-#### 复用`lambda`
+### 复用`lambda`
 
-观察如下两个测试用例，如果做到极致，可认为两个`lambda`表达式也是重复的。从分离关注点的角度分析，此`lambda`表达式承载的「比较算法」与「参数配置」两个职责，应该对其进行分离。
+> Parameterize all the things.
+
+观察如下两个测试用例，如果做到极致，可认为两个`lambda`表达式也是重复的。从「分离变化的方向」的角度分析，此`lambda`表达式承载的「比较算法」与「参数配置」两个职责，应该对其进行分离。
 
 ```java
 assertThat(find(students, s -> s.getName().equals("Horance")), notNullValue());
 assertThat(find(students, s -> s.getName().equals("Tomas")), notNullValue());
 ```
 
-可以通过`「Static Factory」`生产`lambda`表达式，将比较算法封装起来；而配置参数通过引入「参数化」设计，将「逻辑」与「配置」分离，从而达到最大化的代码复用。
+可以通过`「Static Factory Method」`生产`lambda`表达式，将比较算法封装起来；而配置参数通过引入「参数化」设计，将「逻辑」与「配置」分离，从而达到最大化的代码复用。
 
 ```java
 public final class StudentPredicates {
@@ -310,13 +296,13 @@ assertThat(find(students, name("horance")), notNullValue());
 assertThat(find(students, age(10)), notNullValue());
 ```
 
-#### 组合查询
+### 组合查询
 
-但是，上述将`lambda`表达式封装在`Factory`的设计是及其脆弱的，例如，增加如下的需求：
+但是，上述将`lambda`表达式封装在`Factory`的设计是及其脆弱的。例如，增加如下的需求：
 
-> **需求4：** 查找*年龄不等于18岁*的*女生*
+> **需求4：** 查找年龄不等于18岁的女生
 
-最简单的方法就是往`StudentPredicates`不停地增加`「Static Factory」`，但这样的设计严重违反了`「OCP」(开放封闭)`原则。
+最简单的方法就是往`StudentPredicates`不停地增加`「Static Factory Method」`，但这样的设计严重违反了`「OCP」(开放封闭)`原则。
 
 ```java
 public final class StudentPredicates {
@@ -332,14 +318,14 @@ public final class StudentPredicates {
 }
 ```
 
-从需求看，比较准则增加了众多的语义，再次运用分离关注点的原则，可发现存在两类运算的规则:
+从需求看，比较准则增加了众多的语义，再次运用「分离变化方向」的原则，可发现存在两类运算的规则:
 
 - 比较运算：`==, !=`
 - 逻辑运算：`&&, ||`
 
-##### 比较语义
+#### 比较语义
 
-先处理比较运算的关注点，为此建立一个`Matcher`的抽象：
+先处理比较运算的变化方向，为此建立一个`Matcher`的抽象：
 
 ```java
 public interface Matcher<T> {
@@ -355,7 +341,9 @@ public interface Matcher<T> {
 }
 ```
 
-此刻，`age`的设计运用了「函数式」的思维，通过函数的「组合式设计」完成功能的自由拼装，简单、直接、漂亮。
+> Composition everywhere.
+
+此刻，`age`的设计运用了「函数式」的思维，其行为表现为「高阶函数」的特性，通过函数的「组合式设计」完成功能的自由拼装组合，简单、直接、漂亮。
 
 ```java
 public final class StudentPredicates {
@@ -373,7 +361,7 @@ public final class StudentPredicates {
 assertThat(find(students, age(ne(18))), notNullValue());
 ```
 
-##### 逻辑语义
+#### 逻辑语义
 
 为了使得逻辑「谓词」变得更加人性化，可以引入「流式接口」的`「DSL」`设计，增强表达力。
 
@@ -393,7 +381,7 @@ public interface Predicate<E> {
 assertThat(find(students, age(ne(18)).and(Student::female)), notNullValue());
 ```
 
-#### 重复再现
+### 重复再现
 
 仔细的读者可能已经发现了，`Student`和`Teacher`两个类也存在「结构型重复」的问题。
 
@@ -429,7 +417,9 @@ public class Teacher {
 }
 ```
 
-`Student`与`Teacher`的结构性重复，导致`TeacherPredicates`与`TeacherPredicates`也存在结构性重复，为此需要进一步消除重复。
+#### 级联反应
+
+`Student`与`Teacher`的结构性重复，导致`StudentPredicates`与`TeacherPredicates`也存在「结构性重复」。
 
 ```java
 public final class StudentPredicates {
@@ -450,6 +440,8 @@ public final class TeacherPredicates {
   }
 }
 ```
+
+为此需要进一步消除重复。
 
 #### 提取基类
 
@@ -487,7 +479,9 @@ public class Teacher extends Human {
 }
 ```
 
-此时，可以通过引入「类型界定」的泛型设计，使得`TeacherPredicates`与`TeacherPredicates`合二为一，进一步消除重复设计。
+#### 类型界定
+
+此时，可以通过引入「类型界定」的泛型设计，使得`StudentPredicates`与`TeacherPredicates`合二为一，进一步消除重复设计。
 
 ```java
 public final class HumanPredicates {
@@ -500,9 +494,9 @@ public final class HumanPredicates {
 }
 ```
 
-##### 消灭继承关系
+#### 消灭继承关系
 
-`Student`和`Teacher`依然存在「结构型重复」的问题，可以通过`static factory`的设计方法，并让`Human`的构造函数「私有化」，删除`Student`和`Teacher`两个子类，彻底消除两者之间的重复设计。
+`Student`和`Teacher`依然存在「结构型重复」的问题，可以通过`Static Factory Method`的设计方法，并让`Human`的构造函数「私有化」，删除`Student`和`Teacher`两个子类，彻底消除两者之间的「重复设计」。
 
 ```java
 public class Human {
@@ -524,7 +518,7 @@ public class Human {
 }
 ```
 
-##### 消灭类型界定
+#### 消灭类型界定
 
 `Human`的重构，使得`HumanPredicates`的「类型界定」变得多余，从而进一步简化了设计。
 
@@ -538,7 +532,9 @@ public final class HumanPredicates {
 }
 ```
 
-#### 绝不返回`null`
+### 绝不返回`null`
+
+> Billion-Dollar Mistake
 
 在最开始，我们遗留了一个问题：*`find`返回了`null`*。用户调用返回`null`的接口时，常常忘记`null`的检查，导致在运行时发生`NullPointerException`异常。
 
@@ -560,17 +556,13 @@ public <E> Optional<E> find(Iterable<? extends E> c, Predicate<? super E> p) {
 }
 ```
 
-## 思考
+### 回顾
 
-用一句最精炼的话，或一个词，思考如下三个问题，并通过微信，公众号，[codingstyle.cn](https://codingstyle.cn/topics/75)，大家互动一下。
-
-- 什么样的软件设计才算得上是好的？
-- 软件设计的本质是什么？
-- `OO`与`FP`的本质区别是什么？
+通过`4`个需求的迭代和演进，通过运用「正交设计」和「组合式设计」的基本思想，加深对「正交设计基本原则」的理解。
 
 ## 鸣谢
 
-「正交设计」的理论、原则、及其方法论出自前`ThoughtWorks`软件大师「袁英杰」先生。英杰既是我的老师，也是我的挚友；他高深莫测的软件设计的修为，及其对软件设计独特的哲学思维方式，是我等后辈学习的楷模。
+「正交设计」的理论、原则、及其方法论出自前`ThoughtWorks`软件大师「袁英杰」先生。英杰既是我的老师，也是我的挚友；其高深莫测的软件设计的修为，及其对软件设计独特的哲学思维方式，是我等后辈学习的楷模。
 
 ## 关于我
 

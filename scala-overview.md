@@ -507,7 +507,7 @@ case class OrSpec(preds: ProductSpec*) extends CombinableSpec(shortcut = true,  
 def loop(cond: => Boolean)(body: => Unit) {
   if (cond) {
     body
-	  loop(cond)(body)
+	 loop(cond)(body)
   }
 }
 ```
