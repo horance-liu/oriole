@@ -161,7 +161,8 @@ Rule allof(const std::vector<Rule>& rules) {
 }
 ```
 
-### Github
+### 源代码
 
-－ https://
+－ Github: [https://github.com/horance-liu/fizz-buzz-whizz](https://github.com/horance-liu/fizz-buzz-whizz)
+
 
