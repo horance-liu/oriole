@@ -1,5 +1,41 @@
 # Programming Spark
 
+## Hadoop
+
+### Hadoop 1.0
+
+Google发表的三篇论文：
+
+- GFS：数据存储
+- MapReduce：计算引擎
+- BigTable：NoSQL始祖
+
+![](media/14533382715700.jpg)
+
+#### HDFS
+
+- NameNode
+- DataNode
+
+#### MRv1
+
+- JobTracker
+- TaskTracker
+
+### Hadoop 2.0
+
+![](media/14533386581415.jpg)
+
+#### HDFS 2.0
+
+- 单点故障：HDFS HA
+- 内存受限：HDFS Federation
+
+#### YARN
+
+- 解耦：JobTracker -> ResourceManager, ApplicationMaster
+- 多计算框架：MRv2，Spark，Storm
+
 ## What's Spark
 
 **Apache Spark™** is a fast and general engine for large-scale data processing.
@@ -258,6 +294,24 @@ private[spark] abstract class Stage(
 ```
 
 其中`rdd`为`Stage`中最后一个`RDD`，可反向推演出完整的`Stage`；`numTasks`表示`Stage`并发执行的的任务数，等于`RDD`的分区数。
+
+## Spark运行模式
+
+- `master`: `local[*], spark, mesos, yarn`
+- `deploy-mode`: `local, cluster`
+
+### Standalone
+
+#### Driver位置
+
+- `spark-submit`: 运行在本地客户端
+- `spark-shell, run-example`：运行在`Master`上
+
+### Spark on Yarn
+
+#### Spark on Yarn-client
+
+#### Spark on Yarn-cluster
 
 ## About Me
 

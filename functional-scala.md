@@ -1,31 +1,30 @@
 # Functional Scala
 
-> Functional programming leads to deep insights into the nature of computation. -- Martin Odersky.
+> Functional programming leads to deep insights into the nature of computation. -- Martin Odersky
 
-## What's FP?
+## What's FP
 
-「函数式」是一种使用「纯函数」(`Pure Function`)组装程序的编程范式。
+「函数式」是一种使用「纯函数」组装程序的编程范式。
 
-## History
+- `Pure Functions`
+- `No Side Effects`
+- `Referential Transparency`
 
 ### FP
 
-> Object-oriented programming is an exceptionally bad idea which could only have originated in California. -- E.W. Dijkstra.
-
-- Lisp
-- Haskell
+- `Lisp`
+- `Haskell`
 
 ### OO
 
-> You probably know that arrogance, in computer science, is measured in Nano-Dijkstras. -- Alan Kay.
+- `Smalltalk`
+- `C++/Java`
 
-- Smalltalk
-- C++/Java
+### What's Scala
 
-### What's Scala: Object-Oriented Meets Functional
+> Object-Oriented Meets Functional. -- Martin Odersky
 
 ```scala
-// @author: Martin Odersky
 def Scala = OO + FP
 ```
 
@@ -38,43 +37,16 @@ def Scala = OO + FP
 - 无副作用`(Side Effects Free)`
 - 引用透明`(Referentially Transparent)`
 
-### Side Effects Free
+### No Side Effects
+
+> Prefre to Side Effect Free Functions
 
 所谓「副作用」指的是程序运行时修改了全局变量，操作了`IO`等等。「副作用」常常导致错误的发生，并且降低程序的可读性。
 
 - Reassigning a variable
-
-> Prefer `val` to `var`
-
-```scala
-var i = 0
-i += 1
-```
-- Modifying a data structure in place```scala
-val x = new StringBuilder("hello")
-x.append(", ").append("world")
-```
-- Setting a field on an object
-
-```scala
-class Person(var name: String)
-
-val p = new Person("horance")
-p.name = "Horance"
-```
-- Throwing an exception or halting with an error 
-
-```scala
-def divide(a: Int, b: Int) = 
-  if (b != 0) a/b 
-  else throw new ArithmeticException
-```
-
+- Modifying a data structure in place- Setting a field on an object
+- Throwing an exception or halting with an error 
 - Operating on the IO
-
-```scala
-println("hello, world")
-```
 
 ### Referential Transparency
 
@@ -107,6 +79,8 @@ object JSpec {
 - Laziness
 
 ### How Pure Funtions
+
+`Rational`是一个「有理数」的实现。
 
 ```scala
 class Rational(var number: Ind, var denom: Int) {
@@ -155,8 +129,10 @@ class Rational(val number: Ind, val denom: Int) {
 `Immutablity`相对于`Mutablity`，存在唯一的劣势：
 
 - 性能：在某些场景，不可变性可能会成为性能的瓶颈
+
+### 解决方案
  
-如何解决这个问题呢？同时提供可变与不可变的实现版本：
+如何解决这个问题呢？同时提供「可变」与「不可变」的实现版本；在某些场景下，为了效率，可选择「可变类」的是实现。
 
 - `String` VS. `StringBuilder`
 - `scala.collection.mutable` VS. `scala.collection.immutabl`
