@@ -44,7 +44,7 @@
 
 ```scala
 def times(n: Int) = (x: Int) => x % n == 0
-def contains(n: Int) = (x: Int) => n.toString.contains(x.toString)
+def contains(n: Int) = (x: Int) => x.toString.contains(n.toString)
 def always(bool: Boolean) = (x: Int) => bool
 
 def to(str: String) = (x: Int) => str
@@ -62,7 +62,6 @@ def r2 = (r1_3 && r1_5) ||
          (r1_3 && r1_5 && r1_7)
 
 def r3 = atom(contains(3), to("Fizz"))
-
 def rd = atom(always(true), nop());
 
 def spec = r3 || r2 || r1 || rd 
@@ -282,6 +281,8 @@ private:
 
 ### 源代码
 
-－ Github: [https://github.com/horance-liu/fizz-buzz-whizz](https://github.com/horance-liu/fizz-buzz-whizz)
+- **Github:** [https://github.com/horance-liu/fizz-buzz-whizz](https://github.com/horance-liu/fizz-buzz-whizz)
+- **Scala参考实现：** [https://codingstyle.cn/topics/99](https://codingstyle.cn/topics/99)
+- **Java参考实现：** [https://codingstyle.cn/topics/100](https://codingstyle.cn/topics/100)
 
 
