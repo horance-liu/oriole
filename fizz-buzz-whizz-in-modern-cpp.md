@@ -1,17 +1,94 @@
-# FizzBuzzWhizz in Modern C++
+# The Coding Kata: FizzBuzzWhizz in Modern C++11
 
-> Surprisingly, C++11 feels like a new language - the pieces just fit together better. -- Bjarne Stroustrup
-## Fizz Buzz Whizz
+> Surprisingly, C++11 feels like a new language. -- Bjarne Stroustrup
 
-你是一名体育老师，在某次课距离下课还有五分钟时，你决定搞一个游戏。游戏的规则如下：
+至今，`C++`社区仍具有强大的生命力，尤其自`C++11`出现后获得了新生。`C++`到底存在什么样的魅力，让人如此痴狂呢？本文试图阐述`C++`的设计思维，并揭示`C++`内在的设计本质；最后通过`FizzBuzzWhizz`的设计和实现一展`C++11`的风采。
 
-1. 首先说出三个不同的特殊数，要求必须是个位数，比如`3、5、7`。 
-2. 让所有学生拍成一队，然后按顺序报数。
-3. 如果所报数字是第一个特殊数（3）的倍数，那么不能说该数字，而要说Fizz；如果所报数字是第二个特殊数（5）的倍数，那么要说Buzz；如果所报数字是第三个特殊数（7）的倍数，那么要说Whizz。
-4. 如果所报数字同时是两个或三个特殊数的倍数情况下，也要特殊处理。例如第一个特殊数和第二个特殊数的倍数，那么不能说该数字，而是要说FizzBuzz。以此类推，如果同时是三个特殊数的倍数，那么要说FizzBuzzWhizz。 
-5. 如果所报数字包含了**第一个**特殊数，那么也不能说该数字，而是要说相应的单词。比如本例中第一个特殊数是3，那么要报13的同学应该说Fizz。如果数字中包含了第一个特殊数，那么忽略规则3和规则4，比如要报35的同学只报Fizz，不报BuzzWhizz。
+## 设计思维
+
+### 简单
+
+> Make Simple Tasks Simple.
+
+- Keep Simple Things Simple
+- Don't Make Complex Things Unnecessarily Complex
+- Don't Make Things Impossible
+
+**Constraint**: Don't Cacrifice Performance.
+
+### 平衡
+
+> Don’t Over Abstract
+
+- Abstraction
+- Performance
+
+`C++`试图找到「抽象」和「性能」的平衡点，并将抉择的自由留给了程序员。
+
+### 自由
+
+- No One Size Fits All
+- Multi-Paradigm
+
+世界是多样性的，`C++`多范式的设计思维赋予了程序员极大的自由度和灵活性。
+
+### 友好
+ 
+- More and More Expert Friendly
+
+`C++`越来越变得更加友好，这种友好性对于专家感触将更加深刻。
+ 
+## FizzBuzzWhizz
+
+`FizzBuzzWhizz`详细描述请自行查阅相关资料。此处以`3, 5, 7`为例，形式化地描述一下问题。
+
+```scala
+def times(n: Int) = (x: Int) => x % n == 0
+def contains(n: Int) = (x: Int) => n.toString.contains(x.toString)
+def always(bool: Boolean) = (x: Int) => bool
+
+def to(str: String) = (x: Int) => str
+def nop() = (x: Int) => x.toString
+
+def r1_3 = atom(times(3), to("Fizz"))
+def r1_5 = atom(times(5), to("Buzz"))
+def r1_7 = atom(times(7), to("Whizz"))
+
+def r1 = r1_3 || r1_5 || r1_7
+
+def r2 = (r1_3 && r1_5) || 
+         (r1_3 && r1_7) || 
+         (r1_5 && r1_7) || 
+         (r1_3 && r1_5 && r1_7)
+
+def r3 = atom(contains(3), to("Fizz"))
+
+def rd = atom(always(true), nop());
+
+def spec = r3 || r2 || r1 || rd 
+```
+
+为了简化问题的描述，此处使用`Scala`语言设计的`DSL`来描述，并可作为`C++11`设计的`DSL`提供比较的样本。如有感兴趣的同学，可自行实现`Scala`的版本。
+
+接下来我将使用`C++11`尝试`FizzBuzzWhizz`问题的设计和实现，你会发现其简单程度及其表达力，可与`Scala`不分伯仲。
+
+### 语义模型
+
+从上面的形式化描述，可以很容易地得到`FizzBuzzWhizz`问题的语义模型。
+
+```cpp
+rule ::= atom | 
+         allof(rule(1), rule(2), ..., rule(n)) | 
+         anyof(rule(1), rule(2), ..., rule(n))
+
+atom ::= (matcher, action) -> bool
+matcher ::= (int) -> bool
+action ::= (int) -> string
+```
 
 ### 测试用例
+
+借助`C++11`增强了的「类型系统」能力，可抛弃掉很多重复的「样板代码」，使得设计更加简单、漂亮。此外，`C++11`构造`DSL`的能力也相当值得称赞，而且非常直接，简单。
 
 ```cpp
 FIXTURE(FizzBuzzWhizzSpec) {
@@ -85,7 +162,11 @@ FIXTURE(FizzBuzzWhizzSpec) {
 };
 ``` 
 
-### `Matcher`
+### 匹配器：`Matcher`
+
+`Matcher`是一个「一元函数」，入参为`int`，返回值为`bool`，是一种典型的「谓词」。设计采用了`C++11`函数式的风格，并利用强大的「闭包」能力，让代码更加简洁，并富有表达力。
+
+从`OO`的角度看，`always`是一种典型的`Null Object`。
 
 ```cpp
 using Matcher = std::function<bool(int)>;
@@ -98,7 +179,7 @@ Matcher times(int times) {
 
 Matcher contains(int num) {
   return [=](auto n) { 
-    return toString(n).find(toString(num)) != std::string::npos; 
+    return toString(n).find(toString(num)) != string::npos; 
   };
 }
 
@@ -109,7 +190,9 @@ Matcher always(bool value) {
 }
 ```
 
-### `Action`
+### 执行器：`Action`
+
+`Action`也是一个「一元函数」，入参为`int`，返回值为`std::string`，其本质就是定制常见的`map`操作，将定义域映射到值域。
 
 ```cpp
 using Action = std::function<std::string(int)>;
@@ -127,7 +210,16 @@ Action nop() {
 }
 ```
 
-### `Rule`
+### 规则：`Rule`
+
+> Composition Everywhere
+
+`Rule`是`FizzBuzzWhizz`最核心的抽象，也是设计的灵魂所在。从语义上`Rule`分为`2`种基本类型，并且两者之间形成了优美的、隐式的「树型」结构，体现了「组合式设计」的强大威力。
+
+- `Atomic`
+- `Compositions: anyof, allof`
+
+`Rule`是一个「二元函数」，入参为`(int, RuleResult&)`，返回值为`bool`。另外，为了消除`allof, anyof`之间存在重复设计，`combine`自然地被提取出来了。
 
 ```cpp
 using Rule = std::function<bool(int, RuleResult&)>;
@@ -159,6 +251,33 @@ Rule allof(const std::vector<Rule>& rules) {
     return rr.collect(combine(rules, false)(n, result), result);
   };
 }
+```
+
+### 聚集参数：`RuleResult`
+
+为了取得性能的优势，`RuleResult`充当`Collect Parameter`的角色，是一种常用的实现模式。
+
+```cpp
+struct RuleResult {
+  RuleResult(const std::string& = "") : result(result) {
+  }
+
+  bool collect(bool matched, const RuleResult& rr) {
+    return collect(matched, rr.result);
+  }
+
+  bool collect(bool matched, const std::string& str) {
+    if (matched) result += str;
+    return matched;
+  }
+
+  const std::string& toString() const {
+    return result;
+  }
+
+private:
+  std::string result;
+};
 ```
 
 ### 源代码
