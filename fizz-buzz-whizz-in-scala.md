@@ -6,29 +6,24 @@
 
 `FizzBuzzWhizz`详细描述请自行查阅相关资料。此处以`3, 5, 7`为例，形式化地描述一下问题。
 
-```scala
-def times(n: Int) = (x: Int) => x % n == 0
-def contains(n: Int) = (x: Int) => x.toString.contains(n.toString)
-def to(str: String) = (x: Int) => str
-
-val r1_3 = times(3) -> to("Fizz")
-val r1_5 = times(5) -> to("Buzz")
-val r1_7 = times(7) -> to("Whizz")
-
-val r1 = r1_3 || r1_5 || r1_7
-
-val r2 = (r1_3 && r1_5 && r1_7) ||
-         (r1_3 && r1_5) || 
-         (r1_3 && r1_7) || 
-         (r1_5 && r1_7) || 
-         
-val r3 = atom(contains(3), to("Fizz"))
-val rd = atom(always(true), nop());
-
-val spec = r3 || r2 || r1 || rd 
+```bash
+r1
+- times(3) -> Fizz
+- times(5) -> Buzz
+- times(7) -> Whizz
+r2
+- times(3) && times(5) && times(7) -> FizzBuzzWhizz
+- times(3) && times(5) -> FizzBuzz
+- times(3) && times(7) -> FizzWhizz
+- times(5) && times(7) -> BuzzWhizz
+r3
+- contains(3) -> Fizz
+- the priority of contains(3) is highest
+rd
+- others -> others
 ```
 
-为了简化问题的描述，使用`DSL`形式化地描述问题。接下来我将使用`Scala`尝试`FizzBuzzWhizz`问题的设计和实现。
+接下来我将使用`Scala`尝试`FizzBuzzWhizz`问题的设计和实现。
 
 ### 语义模型
 
@@ -64,7 +59,7 @@ class RuleSpec extends FunSpec {
       allof(r1_5, r1_7))
 
     val r3 = atom(contains(3), to("Fizz"))
-    val rd = atom(always(true), nop());
+    val rd = atom(always(true), nop);
 
     anyof(r3, r2, r1, rd)
   }
@@ -148,7 +143,7 @@ object Actions {
   type Action = Int => String
 
   def to(str: String): Action = _ => str
-  def nop(): Action = _.toString
+  def nop: Action = _.toString
 }
 ```
 

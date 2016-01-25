@@ -42,32 +42,22 @@
 
 `FizzBuzzWhizz`详细描述请自行查阅相关资料。此处以`3, 5, 7`为例，形式化地描述一下问题。
 
-```scala
-def times(n: Int) = (x: Int) => x % n == 0
-def contains(n: Int) = (x: Int) => x.toString.contains(n.toString)
-def always(bool: Boolean) = (x: Int) => bool
-
-def to(str: String) = (x: Int) => str
-def nop() = (x: Int) => x.toString
-
-def r1_3 = atom(times(3), to("Fizz"))
-def r1_5 = atom(times(5), to("Buzz"))
-def r1_7 = atom(times(7), to("Whizz"))
-
-def r1 = r1_3 || r1_5 || r1_7
-
-def r2 = (r1_3 && r1_5) || 
-         (r1_3 && r1_7) || 
-         (r1_5 && r1_7) || 
-         (r1_3 && r1_5 && r1_7)
-
-def r3 = atom(contains(3), to("Fizz"))
-def rd = atom(always(true), nop());
-
-def spec = r3 || r2 || r1 || rd 
+```bash
+r1
+- times(3) -> Fizz
+- times(5) -> Buzz
+- times(7) -> Whizz
+r2
+- times(3) && times(5) && times(7) -> FizzBuzzWhizz
+- times(3) && times(5) -> FizzBuzz
+- times(3) && times(7) -> FizzWhizz
+- times(5) && times(7) -> BuzzWhizz
+r3
+- contains(3) -> Fizz
+- the priority of contains(3) is highest
+rd
+- others -> others
 ```
-
-为了简化问题的描述，此处使用`Scala`语言设计的`DSL`来描述，并可作为`C++11`设计的`DSL`提供比较的样本。如有感兴趣的同学，可自行实现`Scala`的版本。
 
 接下来我将使用`C++11`尝试`FizzBuzzWhizz`问题的设计和实现，你会发现其简单程度及其表达力，可与`Scala`不分伯仲。
 
@@ -224,30 +214,31 @@ Action nop() {
 using Rule = std::function<bool(int, RuleResult&)>;
 
 Rule atom(Matcher matcher, Action action) {
-  return [=](auto n, auto& rr) { 
-    return rr.collect(matcher(n), action(n)); 
+  return [=](auto n, auto& rr) {
+    return rr.collect(matcher(n), action(n));
+  };
+}
+
+Rule anyof(const std::vector<Rule>& rules) {
+  return [=](auto n, auto& rr) {
+    return stdext::any_of(rules, [&](auto& rule) {
+      return rule(n, rr); });
   };
 }
 
 namespace {
-  Rule combine(const std::vector<Rule>& rules, bool shortcut) {
+  Rule allMatch(const std::vector<Rule>& rules) {
     return [=](auto n, auto& rr) {
-      for(auto& rule: rules)
-        if (rule(n, rr) == shortcut)
-          return shortcut;
-      return !shortcut;
+      return stdext::all_of(rules, [&](auto& rule) {
+        return rule(n, rr); });
     };
   }
-}
-
-Rule anyof(const std::vector<Rule>& rules) {
-  return combine(rules, true);
 }
 
 Rule allof(const std::vector<Rule>& rules) {
   return [=](auto n, auto& rr) {
     RuleResult result;
-    return rr.collect(combine(rules, false)(n, result), result);
+    return rr.collect(allMatch(rules)(n, result), result);
   };
 }
 ```
