@@ -1,5 +1,5 @@
-# The Coding Kata: FizzBuzzWhizz in Scala
- 
+# The Coding Kata: FizzBuzzWhizz in Ruby
+
 > Functional programming leads to deep insights into the nature of computation. -- Martin Odersky
  
 ## 形式化
@@ -23,7 +23,7 @@ rd
 - others -> others
 ```
 
-接下来我将使用`Scala`尝试`FizzBuzzWhizz`问题的设计和实现。
+接下来我将使用`Ruby`尝试`FizzBuzzWhizz`问题的设计和实现。
 
 ### 语义模型
 
@@ -53,75 +53,84 @@ anyof(rule1, rule2, ...): rule1 || rule2 || ...
 
 借助`Scala`强大的「类型系统」能力，可抛弃掉很多重复的「样板代码」，使得设计更加简单、漂亮。此外，`Scala`构造`DSL`的能力也相当值得称赞，非常直接，简单。
 
-```scala
-import org.scalatest._
-import prop._
+```ruby
+describe "fizz buzz whizz" do
+  include Matcher
+  include Action
+  include Rule
+  
+  def spec
+    r1_3 = atom(times(3), to("Fizz"))
+    r1_5 = atom(times(5), to("Buzz"))
+    r1_7 = atom(times(7), to("Whizz"))
 
-class RuleSpec extends PropSpec with TableDrivenPropertyChecks with Matchers {
-  val spec = {
-    val r1_3 = atom(times(3), to("Fizz"))
-    val r1_5 = atom(times(5), to("Buzz"))
-    val r1_7 = atom(times(7), to("Whizz"))
+    r1 = anyof([r1_3, r1_5, r1_7])
 
-    val r1 = anyof(r1_3, r1_5, r1_7)
+    r2 = anyof([
+      allof([r1_3, r1_5, r1_7]),
+      allof([r1_3, r1_5]),
+      allof([r1_3, r1_7]),
+      allof([r1_5, r1_7])])
 
-    val r2 = anyof(
-      allof(r1_3, r1_5, r1_7),
-      allof(r1_3, r1_5),
-      allof(r1_3, r1_7),
-      allof(r1_5, r1_7))
+    r3 = atom(contains(3), to("Fizz"))
+    rd = atom(always(true), nop);
 
-    val r3 = atom(contains(3), to("Fizz"))
-    val rd = atom(always(true), nop);
+    anyof([r3, r2, r1, rd])
+  end
 
-    anyof(r3, r2, r1, rd)
-  }
-
-  val specs = Table(
-    ("n", "expect"),
-    (3, "Fizz"),
-    (5, "Buzz"),
-    (7, "Whizz"),
-    (3 * 5, "FizzBuzz"),
-    (3 * 7, "FizzWhizz"),
-    ((5 * 7) * 2, "BuzzWhizz"),
-    (3 * 5 * 7,   "FizzBuzzWhizz"),
-    (13, "Fizz"),
-    (35, "Fizz"),  // 35 > 5*7
-    (2,  "2")
-  )
-
-  property("fizz buzz whizz") {
-    forAll(specs) { spec(_) should be (_) }
-  }
-}
+  [ 
+    [3, 'Fizz' ],
+    [5, 'Buzz' ],
+    [7, 'Whizz' ],
+    [3*5, 'FizzBuzz' ],
+    [3*7, 'FizzWhizz' ],
+    [5*7*2, 'BuzzWhizz' ],
+    [3*5*7, 'FizzBuzzWhizz' ],
+    [13, 'Fizz' ],
+    [35, 'Fizz' ],
+    [2,  '2' ]
+  ].each do |n, expect|
+  	it "#{n} -> #{expect}" do
+      expect(spec.call(n)).to eq expect
+    end
+  end
+end
 ``` 
 
 ### 匹配器：`Matcher`
 
 `Matcher`是一个「一元函数」，入参为`Int`，返回值为`Boolean`，是一种典型的「谓词」。从`OO`的角度看，`always`是一种典型的`Null Object`。
 
-```scala
-object Matchers {
-  type Matcher = Int => Boolean
+```ruby
+module Matcher
+  def times(n)
+    ->(x) { x % n == 0 }
+  end
 
-  def times(n: Int): Matcher = _ % n == 0
-  def contains(n: Int): Matcher = _.toString.contains(n.toString)
-  def always(bool: Boolean): Matcher = _ => bool
-}
+  def contains(n)
+    ->(x) { x.to_s.include?(n.to_s) }
+  end
+
+  def always(b)
+    ->(x) { b }
+  end
+end
 ```
 
 ### 执行器：`Action`
 
 `Action`也是一个「一元函数」，入参为`Int`，返回值为`String`，其本质就是定制常见的`map`操作，将定义域映射到值域。
 
-```scala
-object Actions {
-  type Action = Int => String
+```ruby
+module Action
+  def to(str)
+    ->(n) { str }
+  end
 
-  def to(str: String): Action = _ => str
-  def nop: Action = _.toString
-}
+  def nop 
+    ->(x) { x.to_s }
+  end
+end
 ```
 
 ### 规则：`Rule`
@@ -133,24 +142,31 @@ object Actions {
 - `Atomic`
 - `Compositions: anyof, allof`
 
-`Rule`是一个「一元函数」，入参为`Int`，返回值为`String`。其中，`def atom(matcher: => Matcher, action: => Action)`的入参使用`Pass By Name`的惰性求值的特性。
+`Rule`是一个「一元函数」，入参为`Int`，返回值为`String`。
 
-```scala
-object Rules {
-  type Rule = (Int) => String
+```ruby
+module Rule
+  def atom(matcher, action)
+    ->(n) { matcher.call(n) ? action.call(n) : '' } 
+  end
 
-  def atom(matcher: => Matcher, action: => Action): Rule =
-    n => if (matcher(n)) action(n) else ""
+  def allof(rules)
+    ->(n) { strings(rules, n).join }
+  end
 
-  def anyof(rules: Rule*): Rule =
-    n => rules.map(_(n))
-      .filterNot(_.isEmpty)
-      .headOption
-      .getOrElse("")
+  def anyof(rules)
+    lambda do |n|
+      result = strings(rules, n).find { |s| !s.empty? }
+      result != nil ? result : ''
+    end
+  end
 
-  def allof(rules: Rule*): Rule =
-    n => rules.foldLeft("") { _ + _(n) }
-}
+  def strings(rules, n)
+    rules.map { |rule| rule.call(n) }
+  end
+
+  private :strings
+end
 ```
 
 ### 源代码
@@ -158,5 +174,5 @@ object Rules {
 - **Github:** [https://github.com/horance-liu/fizz-buzz-whizz](https://github.com/horance-liu/fizz-buzz-whizz)
 - **C++11参考实现：** [https://codingstyle.cn/topics/97](https://codingstyle.cn/topics/97)
 - **Java参考实现：** [https://codingstyle.cn/topics/100](https://codingstyle.cn/topics/100)
-
+- **Scala参考实现：** [https://codingstyle.cn/topics/100](https://codingstyle.cn/topics/99)
 

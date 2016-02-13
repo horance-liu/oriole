@@ -25,7 +25,17 @@ if (logger.isLoggable(Level.INFO)) {
 logger.info("problem:" + getDiagnostic());
 ```
 
-这样的设计虽然将状态的查询进行了封装，但依然存在一个严重的性能问题。无论如何，`getDiagnostic`都将得到调用，如果它是一个耗时、昂贵的操作，将严重地影响了系统的性能。 
+```java
+public void info(String msg) {
+  if (isLoggable(Level.INFO)) {
+    log(msg)
+  }
+}
+```
+
+这样的设计虽然将状态的查询进行了封装，遵循了`LoD`原则，但依然存在一个严重的性能问题。无论如何，`getDiagnostic`都将得到调用，如果它是一个耗时、昂贵的操作，可能成为系统的瓶颈。 
+
+
 
 ### Apply Lambda
 
@@ -84,8 +94,6 @@ logger.info("problem:" + getDiagnostic());
 ## Execute Around
 
 我们经常会遇到一个场景，在执行操作之前，先准备环境，之后再拆除环境。例如`XUnit`中的`setUp/tearDown`；操作数据库时，先取得数据库的连接，操作数据后确保释放连接；当操作文件时，先打开文件流，操作文件后确保关闭文件流。
-
-
 
 ### Apply `try-finally`
 
@@ -202,12 +210,5 @@ using(Source.fromFile(file)) { source =>
 ```scala
 using(Source.fromFile(file)) { _.getLines }
 ```
-
-## About Me
-
-**刘光聪**，程序员，敏捷教练，开源软件爱好者，具有多年大型遗留系统的重构经验，对`OO`，`FP`，`DSL`等领域具有浓厚的兴趣。
-
-- GitHub: [https://github.com/horance-liu](https://github.com/horance-liu)
-- Email: [horance@outlook.com](emailto: horance@outlook.com)
 
 

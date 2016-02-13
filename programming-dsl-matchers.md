@@ -10,11 +10,9 @@
 
 ```java
 public <E> Optional<E> find(Iterable<? extends E> c, Predicate<? super E> p) {
-  for (E e : c) {
-    if (p.test(e)) {
+  for (E e : c)
+    if (p.test(e))
       return Optional.of(e);
-    }
-  }
   return Optional.empty();
 }
 ```

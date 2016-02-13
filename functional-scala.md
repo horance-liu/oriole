@@ -1,6 +1,6 @@
-# Functional Scala
+# Refactoring to Functions
 
-> Functional programming leads to deep insights into the nature of computation. -- Martin Odersky
+> OO makes code understandable by encapsulating moving parting, but FP makes code understandable by minimizing moving parts. － Michael Feathers
 
 ## What's FP
 
@@ -9,6 +9,8 @@
 - `Pure Functions`
 - `No Side Effects`
 - `Referential Transparency`
+- `Lazy`
+- `......`
 
 ### FP
 
@@ -135,7 +137,7 @@ class Rational(val number: Ind, val denom: Int) {
 如何解决这个问题呢？同时提供「可变」与「不可变」的实现版本；在某些场景下，为了效率，可选择「可变类」的是实现。
 
 - `String` VS. `StringBuilder`
-- `scala.collection.mutable` VS. `scala.collection.immutabl`
+- `scala.collection.mutable` VS. `scala.collection.immutable`
 
 ## Lambda
 

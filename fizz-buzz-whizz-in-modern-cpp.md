@@ -42,7 +42,7 @@
 
 `FizzBuzzWhizz`详细描述请自行查阅相关资料。此处以`3, 5, 7`为例，形式化地描述一下问题。
 
-```bash
+```scala
 r1
 - times(3) -> Fizz
 - times(5) -> Buzz
@@ -59,20 +59,30 @@ rd
 - others -> others
 ```
 
-接下来我将使用`C++11`尝试`FizzBuzzWhizz`问题的设计和实现，你会发现其简单程度及其表达力，可与`Scala`不分伯仲。
+接下来我将使用`Scala`尝试`FizzBuzzWhizz`问题的设计和实现。
 
 ### 语义模型
 
 从上面的形式化描述，可以很容易地得到`FizzBuzzWhizz`问题的语义模型。
 
-```cpp
-rule ::= atom | 
-         allof(rule(1), rule(2), ..., rule(n)) | 
-         anyof(rule(1), rule(2), ..., rule(n))
+```scala
+Rule: (Int) -> String
+Matcher: (Int) -> Boolean
+Action: (Int) -> String
+```
 
-atom ::= (matcher, action) -> bool
-matcher ::= (int) -> bool
-action ::= (int) -> string
+其中，`Rule`存在三种基本的类型：
+
+```scala
+Rule ::= atom | allof | anyof
+```
+
+三者之间构成了「树型」结构。
+
+```scala
+atom: (Matcher, Action) -> String
+allof(rule1, rule2, ...): rule1 && rule2 && ... 
+anyof(rule1, rule2, ...): rule1 || rule2 || ... 
 ```
 
 ### 测试用例
@@ -91,62 +101,33 @@ FIXTURE(FizzBuzzWhizzSpec) {
     auto r1 = anyof( { r1_3, r1_5, r1_7 });
 
     auto r2 = anyof({
-      allof( { r1_3, r1_5, r1_7 } ),
-      allof( { r1_3, r1_5 } ),
-      allof( { r1_3, r1_7 } ),
-      allof( { r1_5, r1_7 } )
+      allof({ r1_3, r1_5, r1_7 }),
+      allof({ r1_3, r1_5 }),
+      allof({ r1_3, r1_7 }),
+      allof({ r1_5, r1_7 })
     });
 
     auto r3 = atom(contains(3), to("Fizz"));
     auto rd = atom(always(true), nop());
 
-    return anyof( { r3, r2, r1, rd });
+    return anyof({ r3, r2, r1, rd });
   }
-  
-  void rule(int n, const std::string& expect) {
-    RuleResult result;
-    spec(n, result);
-    ASSERT_THAT(result.toString(), eq(expect));
-  }
-  
-  TEST("times(3) -> Fizz") {
+
+  TEST("fizz buzz whizz") {
     rule(3, "Fizz");
-  }
-
-  TEST("times(5) -> Buzz") {
     rule(5, "Buzz");
-  }
-
-  TEST("times(7) -> Whizz") {
     rule(7, "Whizz");
-  }
-
-  TEST("times(3) && times(5) && times(7) -> FizzBuzzWhizz") {
     rule(3 * 5 * 7, "FizzBuzzWhizz");
-  }
-
-  TEST("times(3) && times(5) -> FizzBuzz") {
     rule(3 * 5, "FizzBuzz");
-  }
-
-  TEST("times(3) && times(7) -> FizzWhizz") {
     rule(3 * 7, "FizzWhizz");
-  }
-
-  TEST("times(5) && times(7) -> BuzzWhizz") {
     rule((5 * 7) * 2, "BuzzWhizz");
-  }
-
-  TEST("contains(3) -> Fizz") {
     rule(13, "Fizz");
-  }
-
-  TEST("the priority of contains(3) is highest") {
     rule(35 /* 5*7 */, "Fizz");
+    rule(2, "2");
   }
 
-  TEST("others -> others") {
-    rule(2, "2");
+  void rule(int n, const std::string& expect) {
+    ASSERT_THAT(spec(n), eq(expect));
   }
 };
 ``` 
@@ -208,66 +189,33 @@ Action nop() {
 - `Atomic`
 - `Compositions: anyof, allof`
 
-`Rule`是一个「二元函数」，入参为`(int, RuleResult&)`，返回值为`bool`。另外，为了消除`allof, anyof`之间存在重复设计，`combine`自然地被提取出来了。
+`Rule`是一个「一元函数」，入参为`int`，返回值为`std::string`。
 
 ```cpp
 using Rule = std::function<bool(int, RuleResult&)>;
 
-Rule atom(Matcher matcher, Action action) {
-  return [=](auto n, auto& rr) {
-    return rr.collect(matcher(n), action(n));
+Rule atom(const Matcher& matcher, const Action& action) {
+  return [=](auto n) {
+    return matcher(n) ? action(n) : "";
   };
 }
 
 Rule anyof(const std::vector<Rule>& rules) {
-  return [=](auto n, auto& rr) {
-    return stdext::any_of(rules, [&](auto& rule) {
-      return rule(n, rr); });
+  return [=](auto n) {
+    auto r = std::find_if(rules.begin(), rules.end(),
+      [&](const auto& r) { return !r(n).empty(); });
+    return r != std::end(rules) ? (*r)(n) : "";
   };
-}
-
-namespace {
-  Rule allMatch(const std::vector<Rule>& rules) {
-    return [=](auto n, auto& rr) {
-      return stdext::all_of(rules, [&](auto& rule) {
-        return rule(n, rr); });
-    };
-  }
 }
 
 Rule allof(const std::vector<Rule>& rules) {
-  return [=](auto n, auto& rr) {
-    RuleResult result;
-    return rr.collect(allMatch(rules)(n, result), result);
+  return [=](auto n) {
+    return std::accumulate(rules.begin(), rules.end(), std::string(""),
+      [=](const auto& result, const auto& rule) {
+        return result + rule(n);
+    });
   };
 }
-```
-
-### 聚集参数：`RuleResult`
-
-为了取得性能的优势，`RuleResult`充当`Collect Parameter`的角色，是一种常用的实现模式。
-
-```cpp
-struct RuleResult {
-  RuleResult(const std::string& = "") : result(result) {
-  }
-
-  bool collect(bool matched, const RuleResult& rr) {
-    return collect(matched, rr.result);
-  }
-
-  bool collect(bool matched, const std::string& str) {
-    if (matched) result += str;
-    return matched;
-  }
-
-  const std::string& toString() const {
-    return result;
-  }
-
-private:
-  std::string result;
-};
 ```
 
 ### 源代码
